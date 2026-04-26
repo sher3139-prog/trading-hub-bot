@@ -48,30 +48,44 @@ def claude(prompt, max_tokens=300):
         return ''
 
 def binance_price(symbol):
-    try:
-        res = requests.get(
-            f'https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}USDT',
-            timeout=5
-        )
-        d = res.json()
-        return {
-            'price': float(d['lastPrice']),
-            'change': float(d['priceChangePercent']),
-            'volume': float(d['quoteVolume']) / 1e6,
-            'high': float(d['highPrice']),
-            'low': float(d['lowPrice'])
-        }
-    except:
-        return None
+    symbol = symbol.upper().replace('USDT','').replace('/','').strip()
+    urls_to_try = [
+        f'https://api.binance.com/api/v3/ticker/24hr?symbol={symbol}USDT',
+        f'https://api1.binance.com/api/v3/ticker/24hr?symbol={symbol}USDT',
+    ]
+    for url in urls_to_try:
+        try:
+            res = requests.get(url, timeout=8, headers={'User-Agent': 'TradingBot/1.0'})
+            if res.status_code != 200:
+                continue
+            d = res.json()
+            if 'lastPrice' not in d:
+                continue
+            return {
+                'price': float(d['lastPrice']),
+                'change': float(d['priceChangePercent']),
+                'volume': float(d['quoteVolume']) / 1e6,
+                'high': float(d['highPrice']),
+                'low': float(d['lowPrice'])
+            }
+        except Exception as e:
+            print(f'binance_price error: {e}')
+            continue
+    return None
 
 def binance_klines(symbol, interval='1h', limit=20):
+    symbol = symbol.upper().replace('USDT','').replace('/','').strip()
     try:
         res = requests.get(
             f'https://api.binance.com/api/v3/klines?symbol={symbol}USDT&interval={interval}&limit={limit}',
-            timeout=5
+            timeout=8,
+            headers={'User-Agent': 'TradingBot/1.0'}
         )
-        return res.json()
-    except:
+        if res.status_code == 200:
+            return res.json()
+        return []
+    except Exception as e:
+        print(f'binance_klines error: {e}')
         return []
 
 def calc_rsi(klines, period=14):
