@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: trading-hub-pro-bot
+    name: trading-hub-bot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn bot:app --workers 1 --threads 4 --timeout 120
+    startCommand: python bot.py
     envVars:
       - key: TG_TOKEN
         sync: false
