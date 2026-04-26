@@ -122,7 +122,12 @@ def cmd_analiz(sym):
         sym = 'BTC'
     d = binance_price(sym)
     if not d:
-        return f'❌ {sym} verisi alınamadı. Coin adını kontrol et.'
+        return f'try:
+    test = requests.get('https://api.binance.com/api/v3/ping', timeout=5)
+    ping_ok = test.status_code == 200
+except:
+    ping_ok = False
+return f'❌ {sym} verisi alınamadı.\nBinance ping: {"✅" if ping_ok else "❌ ENGELLENDİ"}''
     klines = binance_klines(sym)
     rsi = calc_rsi(klines)
     price_str = f"${d['price']:,.0f}" if d['price'] > 100 else f"${d['price']:.4f}"
